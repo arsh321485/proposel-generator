@@ -1869,7 +1869,8 @@ security = HTTPBasic()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # allow_origins=["*"],
+    allow_origins=["http://38.242.247.151:8015"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -690,8 +690,8 @@ function buildSummary() {
 }
 
 // ─── DOCX Generation — calls Python backend ───────────────────────────────────
-const API_BASE = 'http://localhost:8000';   // ← change if backend runs elsewhere
-
+// const API_BASE = 'http://localhost:8000';   // ← change if backend runs elsewhere
+const API_BASE = 'http://38.242.247.151:8015';
 async function generateProposal() {
   const btn = document.getElementById('gen-btn');
   btn.classList.add('loading');
