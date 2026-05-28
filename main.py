@@ -1765,7 +1765,7 @@ from proposal_data import PROPOSALS
 
 # ── Admin credentials (set env vars to override) ─────────────────────────────
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
-ADMIN_PASS = os.getenv("ADMIN_PASS", "secureitlab2024")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "proposal_sitl_2026")
 
 # ── CSV log file ──────────────────────────────────────────────────────────────
 LOG_FILE = Path("downloads.csv")
