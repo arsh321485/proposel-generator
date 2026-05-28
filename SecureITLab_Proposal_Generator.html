@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SecureITLab — Proposal Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A3C6E;--blue:#2E75B6;--lblue:#D5E8F0;--yellow:#FFF2CC;
+  --grey:#595959;--light:#F4F7FB;--white:#fff;--border:#D1D9E6;
+  --red:#C0392B;--green:#27AE60;--shadow:0 4px 20px rgba(26,60,110,.12);
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--light);color:var(--grey);min-height:100vh}
+
+/* Header */
+.header{background:var(--navy);color:#fff;padding:18px 40px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.header .logo{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.header .tagline{font-size:12px;opacity:.7;margin-top:2px}
+.badge{background:var(--blue);color:#fff;font-size:11px;padding:4px 10px;border-radius:20px;margin-left:auto;white-space:nowrap}
+
+/* Layout */
+.container{max-width:900px;margin:32px auto;padding:0 20px}
+
+/* Progress */
+.progress{display:flex;align-items:center;margin-bottom:32px;background:#fff;border-radius:12px;padding:20px 28px;box-shadow:var(--shadow)}
+.step-item{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;cursor:pointer}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:16px;left:calc(50% + 16px);right:calc(-50% + 16px);height:2px;background:var(--border)}
+.step-item.done::after{background:var(--blue)}
+.step-circle{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--border);transition:all .3s;position:relative;z-index:1}
+.step-item.active .step-circle{border-color:var(--blue);background:var(--blue);color:#fff}
+.step-item.done .step-circle{border-color:var(--blue);background:var(--blue);color:#fff}
+.step-label{font-size:11px;color:var(--grey);margin-top:6px;text-align:center;font-weight:500}
+.step-item.active .step-label{color:var(--blue);font-weight:700}
+
+/* Card */
+.card{background:#fff;border-radius:14px;padding:36px;box-shadow:var(--shadow);animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card-title{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.card-sub{font-size:13px;color:#888;margin-bottom:28px}
+
+/* Form groups */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.row.single{grid-template-columns:1fr}
+.row.triple{grid-template-columns:1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select,.fg textarea{
+  border:1.5px solid var(--border);border-radius:8px;padding:10px 13px;
+  font-size:14px;color:var(--grey);outline:none;transition:border .2s;background:#fff;
+  font-family:inherit;width:100%
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(46,117,182,.12)}
+.fg textarea{resize:vertical;min-height:90px}
+.fg .hint{font-size:11px;color:#aaa;margin-top:2px}
+
+/* Section divider */
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0 18px}
+.divider span{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.divider::after{flex:.05}
+
+/* Dynamic lists */
+.dynamic-list{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.list-item{display:flex;gap:8px;align-items:center}
+.list-item input{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;outline:none;transition:border .2s;font-family:inherit}
+.list-item input:focus{border-color:var(--blue)}
+.btn-remove{width:32px;height:32px;border:none;background:#FEF0F0;color:var(--red);border-radius:7px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.btn-remove:hover{background:var(--red);color:#fff}
+.btn-add{display:flex;align-items:center;gap:6px;background:var(--lblue);color:var(--blue);border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:6px}
+.btn-add:hover{background:var(--blue);color:#fff}
+
+/* Timeline table */
+.tl-table{width:100%;border-collapse:collapse;margin-bottom:8px}
+.tl-table th{background:var(--navy);color:#fff;padding:10px 12px;font-size:12px;text-align:left;font-weight:600}
+.tl-table td{padding:6px 4px;border-bottom:1px solid var(--border)}
+.tl-table input{border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;width:100%;outline:none;font-family:inherit}
+.tl-table input:focus{border-color:var(--blue)}
+.tl-table .btn-remove{margin:0 auto;display:flex}
+.tl-row-alt td{background:#FAFBFD}
+
+/* Cost table */
+.cost-table{width:100%;border-collapse:collapse;margin-bottom:8px}
+.cost-table th{background:var(--navy);color:#fff;padding:10px 12px;font-size:12px;text-align:left;font-weight:600}
+.cost-table td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:middle}
+.cost-table input{border:1.5px solid var(--border);border-radius:6px;padding:7px 8px;font-size:13px;width:100%;outline:none;font-family:inherit}
+.cost-table input:focus{border-color:var(--blue)}
+.cost-table .total-cell{font-weight:700;color:var(--navy);font-size:14px;text-align:right;padding-right:8px}
+.cost-summary{background:var(--light);border-radius:10px;padding:16px 20px;margin-top:12px}
+.cost-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:14px}
+.cost-row.total{font-size:17px;font-weight:800;color:var(--navy);border-top:2px solid var(--blue);margin-top:6px;padding-top:10px}
+
+/* Currency select */
+.currency-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.currency-bar label{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px}
+.currency-bar select{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;outline:none;font-family:inherit}
+.currency-bar select:focus{border-color:var(--blue)}
+
+/* Navigation buttons */
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:24px;border-top:1px solid var(--border)}
+.btn-back{background:none;border:1.5px solid var(--border);color:var(--grey);border-radius:10px;padding:11px 24px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-back:hover{border-color:var(--navy);color:var(--navy)}
+.btn-next{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px}
+.btn-next:hover{background:var(--navy)}
+.btn-generate{background:var(--green);color:#fff;border:none;border-radius:10px;padding:13px 36px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;margin-left:auto}
+.btn-generate:hover{background:#1E8449;transform:translateY(-1px);box-shadow:0 6px 20px rgba(39,174,96,.35)}
+.btn-generate.loading{pointer-events:none;opacity:.7}
+
+/* Service info box */
+.service-info{background:var(--lblue);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:14px 16px;margin-top:8px;font-size:13px;color:var(--grey);line-height:1.6;display:none}
+.service-info.show{display:block}
+.service-info strong{color:var(--navy)}
+
+/* Step hidden */
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.summary-item{background:var(--light);border-radius:8px;padding:12px 16px}
+.summary-item .label{font-size:11px;text-transform:uppercase;font-weight:700;color:#999;letter-spacing:.4px;margin-bottom:4px}
+.summary-item .value{font-size:14px;color:var(--navy);font-weight:600}
+.summary-service{background:var(--navy);color:#fff;border-radius:10px;padding:16px 20px;margin-bottom:20px}
+.summary-service .cat{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.summary-service .sname{font-size:18px;font-weight:800}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--green);color:#fff;border-radius:12px;padding:14px 22px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);transition:transform .4s;z-index:999;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateY(0)}
+
+/* Error */
+.error-msg{font-size:12px;color:var(--red);margin-top:3px;display:none}
+.fg.has-error input,.fg.has-error select,.fg.has-error textarea{border-color:var(--red)}
+.fg.has-error .error-msg{display:block}
+
+@media(max-width:620px){.row{grid-template-columns:1fr}.row.triple{grid-template-columns:1fr 1fr}.summary-grid{grid-template-columns:1fr}.container{padding:0 12px}.card{padding:22px 18px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">SecureITLab</div>
+    <div class="tagline">Cybersecurity · Data Privacy · Data Governance</div>
+  </div>
+  <div class="badge">Proposal Generator</div>
+</div>
+
+<div class="container">
+
+  <!-- Progress -->
+  <div class="progress">
+    <div class="step-item active" id="pi1" onclick="goStep(1)">
+      <div class="step-circle">1</div>
+      <div class="step-label">Service &amp; Client</div>
+    </div>
+    <div class="step-item" id="pi2" onclick="goStep(2)">
+      <div class="step-circle">2</div>
+      <div class="step-label">Scope of Work</div>
+    </div>
+    <div class="step-item" id="pi3" onclick="goStep(3)">
+      <div class="step-circle">3</div>
+      <div class="step-label">Timeline</div>
+    </div>
+    <div class="step-item" id="pi4" onclick="goStep(4)">
+      <div class="step-circle">4</div>
+      <div class="step-label">Investment</div>
+    </div>
+    <div class="step-item" id="pi5" onclick="goStep(5)">
+      <div class="step-circle">&#10003;</div>
+      <div class="step-label">Generate</div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-panel active" id="step1">
+    <div class="card">
+      <div class="card-title">Service &amp; Client Details</div>
+      <div class="card-sub">Select the service and enter the prospect organisation's information.</div>
+
+      <div class="divider"><span>Service Selection</span></div>
+      <div class="row">
+        <div class="fg" id="fg-cat">
+          <label>Service Category</label>
+          <select id="sel-cat" onchange="filterServices()">
+            <option value="">— Choose category —</option>
+          </select>
+        </div>
+        <div class="fg" id="fg-svc">
+          <label>Service</label>
+          <select id="sel-svc" onchange="showServiceInfo()">
+            <option value="">— Choose service —</option>
+          </select>
+        </div>
+      </div>
+      <div class="service-info" id="svc-info"></div>
+
+      <div class="divider"><span>Organisation Details</span></div>
+      <div class="row">
+        <div class="fg" id="fg-orgname">
+          <label>Organisation Name *</label>
+          <input type="text" id="org-name" placeholder="e.g. Gulf Finance Holdings"/>
+          <span class="error-msg">Required</span>
+        </div>
+        <div class="fg">
+          <label>Industry / Sector</label>
+          <input type="text" id="org-industry" placeholder="e.g. Financial Services, Healthcare, Government"/>
+        </div>
+      </div>
+      <div class="row single">
+        <div class="fg">
+          <label>Registered Address</label>
+          <input type="text" id="org-address" placeholder="Street, City, Country"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label>Primary Contact Name &amp; Title</label>
+          <input type="text" id="org-contact" placeholder="e.g. Ahmad Al-Rashid — CISO"/>
+        </div>
+        <div class="fg">
+          <label>Email</label>
+          <input type="email" id="org-email" placeholder="contact@organisation.com"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label>Phone</label>
+          <input type="tel" id="org-phone" placeholder="+973 XXXX XXXX"/>
+        </div>
+        <div class="fg">
+          <label>Proposal Reference</label>
+          <input type="text" id="prop-ref" placeholder="e.g. SIL-2026-001"/>
+        </div>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label>Proposal Date</label>
+          <input type="date" id="prop-date"/>
+        </div>
+      </div>
+      <div class="row single">
+        <div class="fg">
+          <label>Organisation Background</label>
+          <textarea id="org-bg" placeholder="Brief overview: number of employees, key operations, geography, existing security posture..."></textarea>
+        </div>
+      </div>
+      <div class="row single">
+        <div class="fg">
+          <label>Engagement Objective / Business Driver</label>
+          <textarea id="org-obj" placeholder="Why is the client seeking this service? Regulatory requirement, upcoming audit, incident response, planned project..."></textarea>
+        </div>
+      </div>
+
+      <div class="nav">
+        <span></span>
+        <button class="btn-next" onclick="nextStep(1)">Next: Scope of Work <span>&#8594;</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-panel" id="step2">
+    <div class="card">
+      <div class="card-title">Scope of Work</div>
+      <div class="card-sub">Define what is included, excluded, and expected from both parties.</div>
+
+      <div class="divider"><span>In Scope</span></div>
+      <div class="dynamic-list" id="list-inscope"></div>
+      <button class="btn-add" onclick="addItem('inscope')">+ Add In-Scope Item</button>
+
+      <div class="divider"><span>Out of Scope</span></div>
+      <div class="dynamic-list" id="list-outscope"></div>
+      <button class="btn-add" onclick="addItem('outscope')">+ Add Out-of-Scope Item</button>
+
+      <div class="divider"><span>Assumptions &amp; Dependencies</span></div>
+      <div class="dynamic-list" id="list-assumptions"></div>
+      <button class="btn-add" onclick="addItem('assumptions')">+ Add Assumption</button>
+
+      <div class="divider"><span>Client Responsibilities</span></div>
+      <div class="dynamic-list" id="list-responsibilities"></div>
+      <button class="btn-add" onclick="addItem('responsibilities')">+ Add Responsibility</button>
+
+      <div class="divider"><span>Engagement Dates</span></div>
+      <div class="row">
+        <div class="fg">
+          <label>Proposed Start Date</label>
+          <input type="date" id="start-date"/>
+        </div>
+        <div class="fg">
+          <label>Proposed End Date</label>
+          <input type="date" id="end-date"/>
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="btn-back" onclick="prevStep(2)">&#8592; Back</button>
+        <button class="btn-next" onclick="nextStep(2)">Next: Timeline <span>&#8594;</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-panel" id="step3">
+    <div class="card">
+      <div class="card-title">Project Timeline</div>
+      <div class="card-sub">Break the engagement into phases. Add or remove rows as needed.</div>
+
+      <table class="tl-table" id="tl-table">
+        <thead>
+          <tr>
+            <th style="width:16%">Phase</th>
+            <th style="width:35%">Activities</th>
+            <th style="width:15%">Duration</th>
+            <th style="width:27%">Deliverables</th>
+            <th style="width:7%"></th>
+          </tr>
+        </thead>
+        <tbody id="tl-body"></tbody>
+      </table>
+      <button class="btn-add" onclick="addPhase()">+ Add Phase</button>
+
+      <div class="nav">
+        <button class="btn-back" onclick="prevStep(3)">&#8592; Back</button>
+        <button class="btn-next" onclick="nextStep(3)">Next: Investment <span>&#8594;</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-panel" id="step4">
+    <div class="card">
+      <div class="card-title">Investment Summary</div>
+      <div class="card-sub">Enter line items, quantities, and pricing. Totals are calculated automatically.</div>
+
+      <div class="currency-bar">
+        <label>Currency</label>
+        <select id="currency">
+          <option>USD</option><option>BHD</option><option>PHP</option><option>INR</option><option>EUR</option><option>GBP</option><option>AED</option><option>SAR</option>
+        </select>
+      </div>
+
+      <table class="cost-table" id="cost-table">
+        <thead>
+          <tr>
+            <th style="width:22%">Line Item</th>
+            <th style="width:30%">Description</th>
+            <th style="width:16%">Unit Price</th>
+            <th style="width:10%">Qty</th>
+            <th style="width:15%">Total</th>
+            <th style="width:7%"></th>
+          </tr>
+        </thead>
+        <tbody id="cost-body"></tbody>
+      </table>
+      <button class="btn-add" onclick="addCostItem()">+ Add Line Item</button>
+
+      <div class="cost-summary" id="cost-summary">
+        <div class="cost-row"><span>Subtotal</span><span id="sub-total">0.00</span></div>
+        <div class="cost-row">
+          <span>Tax <input type="number" id="tax-rate" value="0" min="0" max="100" step="0.5" oninput="recalcTotal()" style="width:55px;border:1.5px solid var(--border);border-radius:6px;padding:3px 6px;font-size:13px;margin:0 4px"> %</span>
+          <span id="tax-amount">0.00</span>
+        </div>
+        <div class="cost-row total"><span>Total Investment</span><span id="grand-total">0.00</span></div>
+      </div>
+
+      <div class="divider"><span>Payment Schedule</span></div>
+      <div class="dynamic-list" id="list-payments"></div>
+      <button class="btn-add" onclick="addItem('payments')">+ Add Payment Milestone</button>
+
+      <div class="nav">
+        <button class="btn-back" onclick="prevStep(4)">&#8592; Back</button>
+        <button class="btn-next" onclick="nextStep(4)">Preview &amp; Generate <span>&#8594;</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 Generate -->
+  <div class="step-panel" id="step5">
+    <div class="card">
+      <div class="card-title">Ready to Generate</div>
+      <div class="card-sub">Review the summary below, then click Generate to download the Word proposal.</div>
+
+      <div id="summary-content"></div>
+
+      <div class="nav">
+        <button class="btn-back" onclick="prevStep(5)">&#8592; Back</button>
+        <button class="btn-generate" id="gen-btn" onclick="generateProposal()">
+          <span>&#8595;</span> Generate &amp; Download Proposal
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<script>
+// ─── Services Data ────────────────────────────────────────────────────────────
+const CATEGORIES = {
+  "Consulting – Cyber Security": [
+    { key:"Cybersecurity_Capability_Maturity_Assessment", name:"Cybersecurity Capability Maturity Assessment", desc:"Evaluates cybersecurity capabilities against industry-recognised maturity models (NIST CSF, CMMC). Produces a maturity scorecard, gap analysis, and prioritised roadmap.", deliverables:["Maturity scorecard per capability domain","Gap analysis report","Prioritised improvement roadmap","Executive presentation"] },
+    { key:"Cybersecurity_Regulatory_and_Compliance", name:"Cybersecurity Regulatory and Compliance", desc:"Assesses alignment with applicable cybersecurity regulations and frameworks (GDPR, PCI-DSS, NCA ECC, NESA). Identifies compliance gaps and recommends controls.", deliverables:["Regulatory applicability mapping","Compliance gap report","Remediation action plan","Compliance evidence register"] },
+    { key:"Threat_and_Risk_Assessment", name:"Threat and Risk Assessment", desc:"Structured Threat and Risk Assessment using ISO 27005 / NIST SP 800-30 methodologies. Threats are identified, likelihood and impact quantified, and risk treatment options recommended.", deliverables:["Threat catalogue and risk register","Risk heat-map","Risk treatment plan","Executive risk summary"] },
+  ],
+  "Consulting – Data Privacy": [
+    { key:"Data_Privacy_Regulatory_and_Compliance", name:"Data Privacy Regulatory and Compliance", desc:"Evaluates data-handling practices against applicable privacy regulations (GDPR, PDPA, LGPD, PIPL). Produces a clear compliance gap analysis with actionable remediation guidance.", deliverables:["Privacy regulation applicability matrix","Compliance gap report","Remediation roadmap","Privacy obligations summary"] },
+    { key:"Data_Protection_Strategies", name:"Data Protection Strategies", desc:"Designs comprehensive data-protection strategies encompassing classification, encryption, access control, and DLP controls to safeguard personal and sensitive data.", deliverables:["Data classification scheme","Data protection strategy document","Technology and control recommendations","Implementation roadmap"] },
+    { key:"Data_Security_and_Privacy_Monitoring_Metrics", name:"Data Security and Privacy Monitoring Metrics", desc:"Develops a tailored metrics framework enabling continuous measurement of data-security and privacy programme effectiveness, including KPIs, KRIs, and dashboard templates.", deliverables:["Metrics catalogue (KPIs / KRIs)","Measurement methodology guide","Dashboard design templates","Reporting cadence plan"] },
+    { key:"Data_Governance_Framework", name:"Data Governance Framework", desc:"Designs and implements a Data Governance Framework defining policies, roles, responsibilities, and processes for managing data as a strategic asset.", deliverables:["Data governance charter","Policy and procedure library","Roles and responsibilities matrix (RACI)","Governance operating model"] },
+    { key:"Data_Impact_Assessment", name:"Data Impact Assessment", desc:"Performs Data Protection Impact Assessments (DPIAs) / Privacy Impact Assessments (PIAs) on new projects or systems involving personal data.", deliverables:["DPIA / PIA report","Risk register with treatment recommendations","Residual risk statement","Sign-off documentation"] },
+    { key:"Data_Policies,_Procedures_and_Guidelines", name:"Data Policies, Procedures and Guidelines", desc:"Drafts, reviews, and updates the full suite of data-related policies, procedures, and guidelines covering classification, retention, access, breach response, and third-party sharing.", deliverables:["Policy library (customised)","Standard operating procedures","Quick-reference guidelines for staff","Review and approval records"] },
+  ],
+  "Assurance": [
+    { key:"Penetration_Testing", name:"Penetration Testing", desc:"Certified penetration testers simulate real-world attacks against agreed-scope networks, systems, and applications using PTES and OWASP methodologies.", deliverables:["Executive summary report","Technical findings report with CVSS scores","Proof-of-concept evidence","Remediation recommendations","Re-test (if in scope)"] },
+    { key:"Vulnerability_Assessment", name:"Vulnerability Assessment", desc:"Comprehensive vulnerability scanning and analysis across defined asset scope using industry-leading tools (Nessus, Qualys), providing a prioritised list with remediation steps.", deliverables:["Authenticated scan reports","Prioritised vulnerability list (Critical to Informational)","Remediation action plan","Executive summary"] },
+    { key:"Web_Application_Testing", name:"Web Application Testing", desc:"OWASP Top 10-aligned web application security testing (automated and manual) identifying injection, broken authentication, XSS, IDOR, and business logic flaws.", deliverables:["Web application test report","Vulnerability findings with CVSS scoring","Proof-of-concept screenshots / payloads","Remediation guidance"] },
+    { key:"Configuration_Review", name:"Configuration Review", desc:"Reviews security configurations of target systems (firewalls, servers, databases, cloud) against CIS Benchmarks and vendor hardening guides.", deliverables:["Configuration review report (pass / fail per control)","Risk-rated findings list","Hardening script recommendations","Compliance mapping"] },
+    { key:"Source_Code_Review", name:"Source Code Review", desc:"Static analysis (SAST) and manual source code review against OWASP ASVS and SANS Top 25 to identify security vulnerabilities embedded in application code.", deliverables:["Source code review report","Vulnerability catalogue with code references","Remediation recommendations with code samples","Developer guidance notes"] },
+    { key:"Application_Testing", name:"Application Testing", desc:"End-to-end security testing of client applications (desktop, mobile, thick-client) covering authentication, authorisation, session management, data validation, and business logic.", deliverables:["Application security test report","Prioritised findings with CVSS scores","Evidence artefacts","Remediation roadmap"] },
+    { key:"Compromise_Assessment", name:"Compromise Assessment", desc:"Investigates the environment for indicators of compromise (IoCs) and indicators of attack (IoAs) to determine whether a breach has occurred or is in progress.", deliverables:["Compromise assessment report","IoC / IoA findings","Attacker dwell-time analysis","Containment and eradication recommendations"] },
+    { key:"API_Testing", name:"API Testing", desc:"Tests REST, SOAP, and GraphQL APIs against the OWASP API Security Top 10, identifying broken authorisation, excessive data exposure, injection, and IDOR vulnerabilities.", deliverables:["API security test report","Findings list with severity ratings","Exploitation evidence","Remediation guidance"] },
+    { key:"Red_Teaming_Exercise", name:"Red Teaming Exercise", desc:"Red Team simulates APT tactics, techniques, and procedures (TTPs) across people, processes, and technology to test detection, response, and resilience capabilities.", deliverables:["Red Team campaign report","Attack narrative and kill-chain mapping (MITRE ATT&CK)","Detection and response assessment","Strategic recommendations"] },
+    { key:"ASVS_-_Application_Security_Verification_Standard", name:"ASVS – Application Security Verification Standard", desc:"Verifies applications against OWASP ASVS at Level 1, 2, or 3, providing a structured scorecard of control compliance and remediation priorities.", deliverables:["ASVS scorecard (per level and category)","Verification evidence package","Findings report with remediation priorities","ASVS attestation letter (upon successful completion)"] },
+    { key:"Table_Top_Exercise", name:"Table Top Exercise", desc:"Facilitates structured tabletop exercises simulating cyber-incident scenarios to test incident response plans, decision-making processes, and inter-team communication.", deliverables:["Exercise design and scenario packs","Facilitation and observation","Post-exercise findings report","Improvement recommendations"] },
+  ],
+  "Audit & Compliance – Audit": [
+    { key:"IT_System_Audit", name:"IT System Audit", desc:"Independent IT system audit assessing design and operating effectiveness of IT general controls (ITGCs) across change management, access control, operations, and IT governance.", deliverables:["IT audit report with findings and ratings","Control testing evidence","Management recommendations","Action tracking register"] },
+    { key:"Internal_Audit_Support", name:"Internal Audit Support", desc:"Specialist resource augmentation and methodology support to the client's internal audit function for IT and cybersecurity audit engagements.", deliverables:["Audit planning documents","Fieldwork work-papers","Draft and final audit reports","Follow-up tracking template"] },
+    { key:"Cloud_Infrastructure_Audit", name:"Cloud Infrastructure Audit", desc:"Audits cloud environments (AWS, Azure, GCP) against CIS Cloud Benchmarks and provider best-practice baselines, identifying misconfigurations, excessive permissions, and compliance gaps.", deliverables:["Cloud audit report","Misconfiguration findings with risk ratings","Cloud security posture dashboard","Remediation recommendations"] },
+    { key:"Application_Audit", name:"Application Audit", desc:"Control-focused audit of business applications assessing access controls, change management, data integrity controls, and interface security against defined control objectives.", deliverables:["Application audit report","Control testing results","Exceptions and recommendations","Management action plan template"] },
+    { key:"Third_Party_Audit", name:"Third Party Audit", desc:"Risk-based audits of third-party suppliers and service providers to assess security and compliance posture, providing assurance over the supply-chain risk landscape.", deliverables:["Third-party audit report","Supplier risk scorecard","Findings and observations","Supplier action-plan template"] },
+  ],
+  "Audit & Compliance – ISO Compliance": [
+    { key:"ISO_27001-2022_Information_Security_Management_System", name:"ISO 27001:2022 – Information Security Management System", desc:"Full ISO/IEC 27001:2022 implementation guidance from gap assessment and risk treatment planning through policy development, control implementation, and certification audit readiness.", deliverables:["Gap assessment report against ISO 27001:2022 Annex A","Statement of Applicability (SoA)","ISMS documentation suite","Internal audit and management review support","Certification readiness report"] },
+    { key:"ISO_27701-2019_Privacy_Information_Management_System", name:"ISO 27701:2019 – Privacy Information Management System", desc:"Extends the client's ISMS to incorporate a Privacy Information Management System (PIMS) in line with ISO/IEC 27701:2019, enabling accountability for personal data processing.", deliverables:["PIMS gap assessment","Privacy controls implementation plan","Updated SoA (27701 extension)","Certification readiness report"] },
+    { key:"ISO_22301-2019_Business_Continuity_Management_System", name:"ISO 22301:2019 – Business Continuity Management System", desc:"Designs and implements a BCMS in accordance with ISO 22301:2019, including Business Impact Analysis, BCP/DRP development, and exercising programmes.", deliverables:["BIA report","Business Continuity Plan (BCP)","Disaster Recovery Plan (DRP)","Exercise programme and results","Certification readiness report"] },
+    { key:"ISO_27017-2015_Cloud_Security_Controls", name:"ISO 27017:2015 – Cloud Security Controls", desc:"Assesses and implements supplemental security controls for cloud services defined in ISO/IEC 27017:2015, for both cloud service customers and providers.", deliverables:["Cloud security gap assessment (27017)","Control implementation guidance","Updated SoA (27017 supplemental controls)","Certification readiness report"] },
+    { key:"ISO_27018-2019_Protection_of_PII_in_Public_Clouds", name:"ISO 27018:2019 – Protection of PII in Public Clouds", desc:"Implements the code of practice for protection of PII in public cloud environments as defined in ISO/IEC 27018:2019, supporting compliance for cloud PII processors.", deliverables:["PII controls gap assessment (27018)","PII control implementation plan","Privacy notice and contractual clause review","Certification readiness report"] },
+    { key:"ISO_20000-2018_IT_Service_Management_System", name:"ISO 20000:2018 – IT Service Management System", desc:"Supports the design and implementation of an IT Service Management System (SMS) compliant with ISO/IEC 20000-1:2018.", deliverables:["SMS gap assessment","Service management process documentation","Internal audit programme","Certification readiness report"] },
+    { key:"ISO_42001-2023_AI_Management_System", name:"ISO 42001:2023 – AI Management System", desc:"Helps establish an Artificial Intelligence Management System (AIMS) in accordance with ISO/IEC 42001:2023, governing responsible development, deployment, and use of AI systems.", deliverables:["AI risk and impact assessment","AIMS documentation suite","AI governance policy framework","Certification readiness report"] },
+  ],
+  "Services Augmentation – Cyber Security": [
+    { key:"Information_Security_Governance", name:"Information Security Governance", desc:"Establishes or matures the Information Security Governance structure, including security strategy, committee charters, policy frameworks, and performance measurement mechanisms.", deliverables:["IS governance framework","Security committee charter and TOR","Policy hierarchy and templates","Governance KPI dashboard"] },
+    { key:"Designing_Security_Organization", name:"Designing Security Organization", desc:"Designs an optimised security organisation structure — roles, reporting lines, responsibilities, and resourcing models — aligned with organisational size, risk appetite, and objectives.", deliverables:["Security org-design blueprint","Role profiles and job descriptions","RACI matrix","Transition and change management plan"] },
+    { key:"Strategy_and_Business_Alignment", name:"Strategy and Business Alignment", desc:"Develops a multi-year cybersecurity strategy aligned to business objectives, risk appetite, and regulatory requirements, supported by a prioritised roadmap of strategic initiatives.", deliverables:["Cybersecurity strategy document","Strategic roadmap (3-5 year)","Business alignment mapping","Board-level presentation pack"] },
+    { key:"Security_Operations_Services", name:"Security Operations Services", desc:"Designs or reviews Security Operations capability including SOC operating model, playbooks, SIEM use-case development, and analyst workflow optimisation.", deliverables:["SOC operating model design","Detection use-case catalogue","Incident response playbooks","Performance KPI framework"] },
+  ],
+  "Services Augmentation – Data Governance": [
+    { key:"Data_Governance_Strategy_and_Framework_Development", name:"Data Governance Strategy and Framework Development", desc:"Develops a comprehensive data governance strategy and operating framework aligned with business goals and regulatory requirements, establishing governance council, policies, and standards.", deliverables:["Data governance strategy document","Framework and operating model","Council / committee charter","Governance roadmap"] },
+    { key:"Data_Stewardship_and_Ownership_Services", name:"Data Stewardship and Ownership Services", desc:"Defines and embeds data stewardship and ownership roles and responsibilities across business units, ensuring accountability for data quality, access, and compliance.", deliverables:["Stewardship operating model","Role profiles (Data Owner, Steward, Custodian)","Stewardship RACI","Onboarding and training materials"] },
+    { key:"Data_Quality_Management", name:"Data Quality Management", desc:"Implements a Data Quality Management programme covering profiling, quality rules definition, measurement, and remediation to ensure data accuracy, completeness, consistency, and timeliness.", deliverables:["Data quality framework","Quality dimension definitions and rules","Profiling and assessment report","Remediation action plan"] },
+    { key:"Master_Data_Management_(MDM)", name:"Master Data Management (MDM)", desc:"Establishes consistent, authoritative master data through MDM strategy, data modelling, golden record definition, and integration with source systems.", deliverables:["MDM strategy and business case","Master data domain definitions","Golden record design","MDM platform recommendations and roadmap"] },
+    { key:"Data_Cataloging_and_Metadata_Management", name:"Data Cataloging and Metadata Management", desc:"Implements a data catalogue and metadata management capability enabling data discovery, lineage tracking, and business glossary maintenance.", deliverables:["Data catalogue design and implementation plan","Business glossary","Data lineage maps","Metadata standards and taxonomy"] },
+    { key:"Data_Governance_Audits_and_Assessments", name:"Data Governance Audits and Assessments", desc:"Audits the effectiveness of the data governance programme against defined policies, standards, and regulatory requirements, identifying gaps and recommending improvements.", deliverables:["Data governance audit report","Maturity scorecard","Findings and recommendations","Management action plan"] },
+    { key:"Data_Lifecycle_and_Retention_Management", name:"Data Lifecycle and Retention Management", desc:"Designs a Data Lifecycle Management programme encompassing data classification, retention schedules, archival, and secure disposal aligned with regulatory and business requirements.", deliverables:["Retention policy and schedule","Data disposal procedures","Lifecycle workflow designs","Compliance mapping"] },
+    { key:"Data_Governance_Training_and_Change_Management", name:"Data Governance Training and Change Management", desc:"Develops and delivers tailored data governance training programmes and change management plans to ensure organisational buy-in and readiness.", deliverables:["Training needs analysis","Training materials (role-based)","Change management plan","Awareness campaign pack"] },
+  ],
+  "Services Augmentation – Data Privacy": [
+    { key:"Data_Privacy_Assessment_and_Gap_Analysis", name:"Data Privacy Assessment and Gap Analysis", desc:"Evaluates current data privacy practices against applicable legal frameworks and privacy standards, producing a prioritised gap analysis and remediation roadmap.", deliverables:["Current-state privacy assessment","Gap analysis report","Risk-rated findings","Remediation roadmap"] },
+    { key:"Privacy_Policy_Development_and_Implementation", name:"Privacy Policy Development and Implementation", desc:"Drafts and implements privacy policies, notices, and consent frameworks that comply with applicable regulations and clearly communicate data-handling practices.", deliverables:["Privacy policy (external and internal)","Data subject consent framework","Privacy notice templates","Implementation guidance"] },
+    { key:"Data_Mapping_and_Inventory", name:"Data Mapping and Inventory", desc:"Creates a comprehensive map and inventory of personal data flows, documenting data categories, sources, recipients, retention periods, and legal bases for processing.", deliverables:["Records of Processing Activities (RoPA)","Data flow diagrams","Personal data inventory","Third-party data sharing register"] },
+    { key:"Data_Subject_Rights_Management", name:"Data Subject Rights Management", desc:"Designs and implements processes to manage Data Subject Rights requests — access, rectification, erasure, portability, objection — within regulatory timeframes.", deliverables:["DSR process workflows","Request intake and tracking templates","Verification and response procedures","DSR log and register"] },
+    { key:"Privacy_by_Design_and_Data_Minimization", name:"Privacy by Design and Data Minimization", desc:"Embeds Privacy by Design principles into product development and data management processes, ensuring privacy is considered from the outset and data collection is minimised.", deliverables:["Privacy by Design framework","PbD checklist for projects","Data minimisation guidelines","Developer and PM training materials"] },
+    { key:"Third_Party_Risk_and_Vendor_Management", name:"Third Party Risk and Vendor Management", desc:"Establishes a third-party privacy risk management programme including vendor due diligence, DPA reviews, and ongoing monitoring.", deliverables:["Third-party risk assessment framework","Vendor privacy questionnaire","DPA review checklist","Vendor risk register"] },
+    { key:"Privacy_Incident_and_Breach_Management", name:"Privacy Incident and Breach Management", desc:"Designs and tests privacy incident and data breach management capability including detection, containment, notification obligations, and post-incident review.", deliverables:["Privacy incident response plan","Breach notification procedures (regulator and data subject)","Incident log template","Tabletop exercise scenario pack"] },
+    { key:"Data_Privacy_Audits_and_Compliance_Monitoring", name:"Data Privacy Audits and Compliance Monitoring", desc:"Provides ongoing privacy compliance monitoring and periodic audits to ensure the organisation maintains conformance with applicable privacy regulations.", deliverables:["Privacy audit report","Compliance monitoring dashboard","Findings and remediation tracking","Quarterly compliance summary reports"] },
+    { key:"Data_Privacy_Training_and_Awareness_Programs", name:"Data Privacy Training and Awareness Programs", desc:"Designs and delivers role-based data privacy training and awareness campaigns equipping employees to handle personal data responsibly.", deliverables:["Training needs analysis","Role-based e-learning / workshop materials","Awareness campaign assets","Training completion tracking and reporting"] },
+  ],
+  "Managed Services": [
+    { key:"Security_Operation_Center_(SOC)", name:"Security Operation Center (SOC)", desc:"Fully managed SOC service providing 24x7 threat monitoring, detection, and response across the client's environment using SIEM-driven, threat-intelligence-enriched approach.", deliverables:["SOC onboarding and log source integration","24x7 monitoring and alert triage","Monthly threat and incident reports","Annual SOC service review"] },
+    { key:"Network_Operation_Center_(NOC)", name:"Network Operation Center (NOC)", desc:"Managed NOC services for continuous monitoring of network infrastructure availability, performance, and security events, with defined SLAs for incident escalation and resolution.", deliverables:["Network monitoring dashboard","Incident and availability reports","Change and configuration management support","Monthly NOC performance report"] },
+    { key:"Take_Down_Services", name:"Take Down Services", desc:"Manages identification and take-down of malicious online content including phishing sites, fraudulent social media accounts, counterfeit mobile applications, and brand-abuse domains.", deliverables:["Threat intelligence monitoring","Takedown request submission and tracking","Escalation management with registrars / hosting providers","Monthly takedown activity report"] },
+    { key:"Vulnerability_Management", name:"Vulnerability Management", desc:"Managed Vulnerability Management service encompassing continuous asset discovery, authenticated scanning, risk-based prioritisation, remediation tracking, and executive reporting.", deliverables:["Asset inventory and scan coverage report","Prioritised vulnerability dashboard","Remediation SLA tracking","Monthly vulnerability management report"] },
+  ],
+};
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let currentStep = 1;
+const lists = { inscope:[], outscope:[], assumptions:[], responsibilities:[], payments:[] };
+let tlRows = [];
+let costRows = [];
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today as default date
+  document.getElementById('prop-date').value = new Date().toISOString().split('T')[0];
+
+  // Populate categories
+  const catSel = document.getElementById('sel-cat');
+  Object.keys(CATEGORIES).forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat; opt.textContent = cat;
+    catSel.appendChild(opt);
+  });
+
+  // Init dynamic lists with one row each
+  ['inscope','outscope','assumptions','responsibilities'].forEach(s => addItem(s));
+  addPhase(); addPhase(); addPhase();
+  addCostItem(); addCostItem();
+  addItem('payments');
+});
+
+// ─── Service dropdowns ────────────────────────────────────────────────────────
+function filterServices() {
+  const cat = document.getElementById('sel-cat').value;
+  const svcSel = document.getElementById('sel-svc');
+  svcSel.innerHTML = '<option value="">— Choose service —</option>';
+  document.getElementById('svc-info').classList.remove('show');
+  if (!cat) return;
+  CATEGORIES[cat].forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = s.name;
+    svcSel.appendChild(opt);
+  });
+}
+
+function showServiceInfo() {
+  const cat = document.getElementById('sel-cat').value;
+  const idx = document.getElementById('sel-svc').value;
+  const box = document.getElementById('svc-info');
+  if (!cat || idx === '') { box.classList.remove('show'); return; }
+  const svc = CATEGORIES[cat][idx];
+  box.innerHTML = '<strong>' + svc.name + '</strong><br>' + svc.desc +
+    '<br><strong style="display:block;margin-top:8px">Key Deliverables:</strong>' +
+    svc.deliverables.map(d => '• ' + d).join('<br>');
+  box.classList.add('show');
+}
+
+// ─── Dynamic Lists ────────────────────────────────────────────────────────────
+function addItem(section) {
+  lists[section].push('');
+  renderList(section);
+}
+function removeItem(section, idx) {
+  lists[section].splice(idx, 1);
+  renderList(section);
+}
+function getListVal(section, idx) {
+  const el = document.querySelector('[data-list="'+section+'"][data-idx="'+idx+'"]');
+  if (el) lists[section][idx] = el.value;
+}
+function renderList(section) {
+  const container = document.getElementById('list-' + section);
+  container.innerHTML = '';
+  lists[section].forEach((val, i) => {
+    const placeholders = {
+      inscope: 'e.g. External network (IP range 10.0.0.0/24)',
+      outscope: 'e.g. Physical security assessment',
+      assumptions: 'e.g. Client provides credentials within 2 business days',
+      responsibilities: 'e.g. Provide named point of contact for the engagement',
+      payments: 'e.g. 50% upon contract signing',
+    };
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = '<input type="text" placeholder="' + placeholders[section] + '" data-list="' + section + '" data-idx="' + i + '" value="' + val.replace(/"/g,'&quot;') + '" onchange="lists[\'' + section + '\'][' + i + ']=this.value"/>' +
+      (lists[section].length > 1 ? '<button class="btn-remove" onclick="removeItem(\''+section+'\','+i+')" title="Remove">&#10005;</button>' : '');
+    container.appendChild(div);
+  });
+}
+
+// ─── Timeline ─────────────────────────────────────────────────────────────────
+function addPhase() {
+  tlRows.push({ phase:'', activities:'', duration:'', deliverables:'' });
+  renderTimeline();
+}
+function removePhase(i) {
+  tlRows.splice(i,1); renderTimeline();
+}
+function renderTimeline() {
+  const tbody = document.getElementById('tl-body');
+  tbody.innerHTML = '';
+  tlRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    if (i%2===1) tr.className='tl-row-alt';
+    tr.innerHTML = '<td><input type="text" placeholder="Phase '+(i+1)+'" value="'+row.phase.replace(/"/g,'&quot;')+'" oninput="tlRows['+i+'].phase=this.value"/></td>' +
+      '<td><input type="text" placeholder="Activities description" value="'+row.activities.replace(/"/g,'&quot;')+'" oninput="tlRows['+i+'].activities=this.value"/></td>' +
+      '<td><input type="text" placeholder="e.g. 2 weeks" value="'+row.duration.replace(/"/g,'&quot;')+'" oninput="tlRows['+i+'].duration=this.value"/></td>' +
+      '<td><input type="text" placeholder="Deliverable name" value="'+row.deliverables.replace(/"/g,'&quot;')+'" oninput="tlRows['+i+'].deliverables=this.value"/></td>' +
+      '<td>'+(tlRows.length>1?'<button class="btn-remove" onclick="removePhase('+i+')" title="Remove">&#10005;</button>':'')+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── Cost Table ───────────────────────────────────────────────────────────────
+function addCostItem() {
+  costRows.push({ item:'', desc:'', unitPrice:0, qty:1, total:0 });
+  renderCost();
+}
+function removeCostItem(i) {
+  costRows.splice(i,1); renderCost(); recalcTotal();
+}
+function updateCost(i, field, val) {
+  costRows[i][field] = field==='item'||field==='desc' ? val : parseFloat(val)||0;
+  costRows[i].total = costRows[i].unitPrice * costRows[i].qty;
+  const cell = document.getElementById('row-total-'+i);
+  if(cell) cell.textContent = fmtNum(costRows[i].total);
+  recalcTotal();
+}
+function fmtNum(n) { return parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function recalcTotal() {
+  const sub = costRows.reduce((s,r)=>s+(r.total||0),0);
+  const taxRate = parseFloat(document.getElementById('tax-rate').value)||0;
+  const tax = sub * taxRate / 100;
+  const cur = document.getElementById('currency').value;
+  document.getElementById('sub-total').textContent = cur+' '+fmtNum(sub);
+  document.getElementById('tax-amount').textContent = cur+' '+fmtNum(tax);
+  document.getElementById('grand-total').textContent = cur+' '+fmtNum(sub+tax);
+}
+function renderCost() {
+  const tbody = document.getElementById('cost-body');
+  tbody.innerHTML = '';
+  costRows.forEach((row,i) => {
+    const tr = document.createElement('tr');
+    if(i%2===1) tr.style.background='#FAFBFD';
+    tr.innerHTML = '<td><input type="text" placeholder="Item name" value="'+row.item.replace(/"/g,'&quot;')+'" oninput="updateCost('+i+',\'item\',this.value)"/></td>' +
+      '<td><input type="text" placeholder="Description" value="'+row.desc.replace(/"/g,'&quot;')+'" oninput="updateCost('+i+',\'desc\',this.value)"/></td>' +
+      '<td><input type="number" min="0" step="0.01" placeholder="0.00" value="'+row.unitPrice+'" oninput="updateCost('+i+',\'unitPrice\',this.value)"/></td>' +
+      '<td><input type="number" min="1" step="1" value="'+row.qty+'" oninput="updateCost('+i+',\'qty\',this.value)"/></td>' +
+      '<td class="total-cell" id="row-total-'+i+'">'+fmtNum(row.total)+'</td>' +
+      '<td>'+(costRows.length>1?'<button class="btn-remove" onclick="removeCostItem('+i+')" title="Remove">&#10005;</button>':'')+'</td>';
+    tbody.appendChild(tr);
+  });
+  recalcTotal();
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+function validateStep1() {
+  let ok = true;
+  const orgFg = document.getElementById('fg-orgname');
+  if (!document.getElementById('org-name').value.trim()) {
+    orgFg.classList.add('has-error'); ok = false;
+  } else orgFg.classList.remove('has-error');
+  return ok;
+}
+function nextStep(from) {
+  if (from===1 && !validateStep1()) return;
+  if (from===5) return;
+  const to = from + 1;
+  if (to===5) buildSummary();
+  goStep(to);
+}
+function prevStep(from) { goStep(from-1); }
+function goStep(n) {
+  if (n<1||n>5) return;
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-item').forEach((el,i)=>{
+    el.classList.remove('active','done');
+    if(i+1<n) el.classList.add('done');
+    else if(i+1===n) el.classList.add('active');
+  });
+  currentStep=n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── Summary ──────────────────────────────────────────────────────────────────
+function buildSummary() {
+  const cat = document.getElementById('sel-cat').value;
+  const idx = document.getElementById('sel-svc').value;
+  const svc = (cat && idx!=='') ? CATEGORIES[cat][idx] : null;
+  const orgName = document.getElementById('org-name').value || '—';
+  const currency = document.getElementById('currency').value;
+  const sub = costRows.reduce((s,r)=>s+(r.total||0),0);
+  const taxRate = parseFloat(document.getElementById('tax-rate').value)||0;
+  const grand = sub + sub*taxRate/100;
+
+  let html = '';
+  if (svc) html += '<div class="summary-service"><div class="cat">'+cat+'</div><div class="sname">'+svc.name+'</div></div>';
+  html += '<div class="summary-grid">';
+  const fields = [
+    ['Organisation', orgName],
+    ['Industry', document.getElementById('org-industry').value||'—'],
+    ['Contact', document.getElementById('org-contact').value||'—'],
+    ['Email', document.getElementById('org-email').value||'—'],
+    ['Proposal Date', document.getElementById('prop-date').value||'—'],
+    ['Reference', document.getElementById('prop-ref').value||'—'],
+    ['Start Date', document.getElementById('start-date').value||'—'],
+    ['End Date', document.getElementById('end-date').value||'—'],
+    ['Timeline Phases', tlRows.filter(r=>r.phase).length+' defined'],
+    ['Total Investment', currency+' '+fmtNum(grand)],
+  ];
+  fields.forEach(([l,v])=>{
+    html+='<div class="summary-item"><div class="label">'+l+'</div><div class="value">'+v+'</div></div>';
+  });
+  html+='</div>';
+  document.getElementById('summary-content').innerHTML=html;
+}
+
+// ─── DOCX Generation — calls Python backend ───────────────────────────────────
+const API_BASE = 'http://localhost:8000';   // ← change if backend runs elsewhere
+
+async function generateProposal() {
+  const btn = document.getElementById('gen-btn');
+  btn.classList.add('loading');
+  btn.textContent = 'Generating...';
+  try {
+    const cat = document.getElementById('sel-cat').value;
+    const idx = document.getElementById('sel-svc').value;
+    if (!cat || idx === '') { showToast('Please select a service first.'); return; }
+    const svc = CATEGORIES[cat][idx];
+
+    // Build payload matching ProposalRequest in main.py
+    const payload = {
+      service_key:           svc.key || svc.name.replace(/[^a-zA-Z0-9]/g,'_'),
+      service_name:          svc.name,
+      service_desc:          svc.desc,
+      service_deliverables:  svc.deliverables,
+      org_name:     document.getElementById('org-name').value || '',
+      org_industry: document.getElementById('org-industry').value || '',
+      org_address:  document.getElementById('org-address').value || '',
+      org_contact:  document.getElementById('org-contact').value || '',
+      org_email:    document.getElementById('org-email').value || '',
+      org_phone:    document.getElementById('org-phone').value || '',
+      org_bg:       document.getElementById('org-bg').value || '',
+      org_obj:      document.getElementById('org-obj').value || '',
+      prop_date:    document.getElementById('prop-date').value || '',
+      prop_ref:     document.getElementById('prop-ref').value || '',
+      start_date:   document.getElementById('start-date').value || '',
+      end_date:     document.getElementById('end-date').value || '',
+      currency:     document.getElementById('currency').value || 'USD',
+      tax_rate:     parseFloat(document.getElementById('tax-rate').value) || 0,
+      inscope:          lists.inscope.filter(x=>x.trim()),
+      outscope:         lists.outscope.filter(x=>x.trim()),
+      assumptions:      lists.assumptions.filter(x=>x.trim()),
+      responsibilities: lists.responsibilities.filter(x=>x.trim()),
+      payments:         lists.payments.filter(x=>x.trim()),
+      timeline_rows: tlRows.filter(r=>r.phase||r.activities).map(r=>({
+        phase:r.phase, activities:r.activities, duration:r.duration, deliverables:r.deliverables
+      })),
+      cost_rows: costRows.filter(r=>r.item||r.desc||r.unitPrice).map(r=>({
+        item:r.item, desc:r.desc, unit_price:r.unitPrice, qty:r.qty, total:r.total
+      })),
+    };
+
+    const resp = await fetch(API_BASE + '/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({detail:'Unknown error'}));
+      throw new Error(err.detail || resp.statusText);
+    }
+
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const orgName  = (document.getElementById('org-name').value||'Proposal').replace(/\s+/g,'_');
+    const svcName  = svc.name.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_-]/g,'');
+    a.href = url; a.download = 'Proposal_'+orgName+'_'+svcName+'.docx';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Proposal downloaded successfully!');
+  } catch(e) {
+    console.error(e);
+    showToast('Error: ' + e.message);
+  }
+  btn.classList.remove('loading');
+  btn.innerHTML='<span>&#8595;</span> Generate &amp; Download Proposal';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+async function buildDocument() {
+  const D = window.docx;
+  const {
+    Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+    Header, Footer, AlignmentType, HeadingLevel, BorderStyle, WidthType,
+    ShadingType, VerticalAlign, PageNumber, PageBreak, LevelFormat
+  } = D;
+
+  // Form values
+  const cat = document.getElementById('sel-cat').value;
+  const idx = document.getElementById('sel-svc').value;
+  const svc = (cat && idx!=='') ? CATEGORIES[cat][idx] : { name:'[Service Name]', desc:'', deliverables:[] };
+  const orgName = document.getElementById('org-name').value||'[Organisation Name]';
+  const orgIndustry = document.getElementById('org-industry').value||'';
+  const orgAddress = document.getElementById('org-address').value||'';
+  const orgContact = document.getElementById('org-contact').value||'';
+  const orgEmail = document.getElementById('org-email').value||'';
+  const orgPhone = document.getElementById('org-phone').value||'';
+  const orgBg = document.getElementById('org-bg').value||'';
+  const orgObj = document.getElementById('org-obj').value||'';
+  const propDate = document.getElementById('prop-date').value||'';
+  const propRef = document.getElementById('prop-ref').value||'';
+  const startDate = document.getElementById('start-date').value||'';
+  const endDate = document.getElementById('end-date').value||'';
+  const currency = document.getElementById('currency').value;
+  const taxRate = parseFloat(document.getElementById('tax-rate').value)||0;
+
+  // Colours
+  const NAVY='1A3C6E', BLUE='2E75B6', LBLUE='D5E8F0', GREY='595959', WHITE='FFFFFF';
+  const PAGE_W=11906, PAGE_H=16838, MARGIN=1417, CW=PAGE_W-MARGIN*2;
+
+  function bdr(c='CCCCCC',s=4){return{style:BorderStyle.SINGLE,size:s,color:c};}
+  function allB(c='CCCCCC',s=4){const b=bdr(c,s);return{top:b,bottom:b,left:b,right:b};}
+
+  function rule(){return new Paragraph({spacing:{before:80,after:80},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:BLUE,space:1}},children:[]});}
+  function bp(text,col){return new Paragraph({spacing:{before:80,after:80},children:[new TextRun({text,font:'Arial',size:20,color:col||GREY})]});}
+  function h1(text){return new Paragraph({heading:HeadingLevel.HEADING_1,spacing:{before:280,after:120},children:[new TextRun({text,font:'Arial',bold:true,size:28,color:NAVY})]});}
+  function label(text){return new Paragraph({spacing:{before:120,after:30},children:[new TextRun({text,font:'Arial',size:20,bold:true,color:NAVY})]});}
+  function value(text){return new Paragraph({spacing:{before:0,after:60},children:[new TextRun({text:text||'—',font:'Arial',size:20,color:GREY})]});}
+  function subh(text){return new Paragraph({spacing:{before:160,after:80},children:[new TextRun({text,font:'Arial',size:22,bold:true,color:NAVY})]});}
+  function hCell(t,w){return new TableCell({width:{size:w,type:WidthType.DXA},borders:allB(BLUE,6),shading:{fill:NAVY,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},verticalAlign:VerticalAlign.CENTER,children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:t,font:'Arial',size:18,bold:true,color:WHITE})]})]});}
+  function dCell(t,w,fill,italic){return new TableCell({width:{size:w,type:WidthType.DXA},borders:allB('CCCCCC',4),shading:{fill:fill||WHITE,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:t||'',font:'Arial',size:20,color:italic?'7F7F7F':GREY,italics:!!italic})]})]});}
+  function pb(){return new Paragraph({spacing:{before:360},children:[new PageBreak()]});}
+  function bullet(text){return new Paragraph({spacing:{before:40,after:40},numbering:{reference:'bullets',level:0},children:[new TextRun({text,font:'Arial',size:20,color:GREY})]});}
+
+  // Sub totals
+  const subTotal = costRows.reduce((s,r)=>s+(r.total||0),0);
+  const taxAmt = subTotal*taxRate/100;
+  const grandTotal = subTotal+taxAmt;
+
+  // Timeline columns
+  const H=[Math.round(CW*.18),Math.round(CW*.35),Math.round(CW*.16),Math.round(CW*.31)];
+  // Cost columns
+  const C=[Math.round(CW*.24),Math.round(CW*.30),Math.round(CW*.16),Math.round(CW*.10),Math.round(CW*.20)];
+
+  const children = [
+    // ── Cover ──
+    new Paragraph({spacing:{before:1440,after:200},alignment:AlignmentType.CENTER,children:[new TextRun({text:'SecureITLab',font:'Arial',size:56,bold:true,color:NAVY})]}),
+    new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:80},children:[new TextRun({text:'Cybersecurity | Data Privacy | Data Governance',font:'Arial',size:22,color:BLUE})]}),
+    new Paragraph({spacing:{before:40,after:40},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:BLUE,space:1}},children:[]}),
+    new Paragraph({spacing:{before:600,after:120},alignment:AlignmentType.CENTER,children:[new TextRun({text:'SERVICE PROPOSAL',font:'Arial',size:28,bold:true,color:GREY,allCaps:true})]}),
+    new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:200},children:[new TextRun({text:svc.name,font:'Arial',size:36,bold:true,color:NAVY})]}),
+    new Paragraph({spacing:{before:40,after:40},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:BLUE,space:1}},children:[]}),
+    new Paragraph({spacing:{before:480,after:60},alignment:AlignmentType.CENTER,children:[new TextRun({text:'Prepared for:',font:'Arial',size:22,color:GREY})]}),
+    new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:200},children:[new TextRun({text:orgName,font:'Arial',size:32,bold:true,color:NAVY})]}),
+    new Paragraph({spacing:{before:60,after:40},alignment:AlignmentType.CENTER,children:[new TextRun({text:'Proposal Date: '+propDate,font:'Arial',size:20,color:GREY})]}),
+    new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'Reference: '+propRef,font:'Arial',size:20,color:GREY})]}),
+    new Paragraph({spacing:{before:960},children:[new PageBreak()]}),
+
+    // ── S1 Org ──
+    h1('1.  Organisation Overview'), rule(),
+    label('Organisation Name'), value(orgName),
+    label('Industry / Sector'), value(orgIndustry),
+    label('Registered Address'), value(orgAddress),
+    label('Primary Contact'), value(orgContact),
+    label('Email'), value(orgEmail),
+    label('Phone'), value(orgPhone),
+    label('Organisation Background'), value(orgBg),
+    label('Engagement Objective'), value(orgObj),
+
+    // ── S2 About SIL ──
+    pb(), h1('2.  About SecureITLab'), rule(),
+    bp('SecureITLab is a remote-first cybersecurity, data privacy, and data governance consulting firm with over 20 years of industry experience. Headquartered in the Kingdom of Bahrain, with offices in the Philippines and India, SecureITLab serves clients across the Middle East, Asia-Pacific, and beyond.'),
+    bp('Our team of certified professionals (CISSP, CISM, CISA, CEH, ISO 27001 LA/LI, CDPSE) delivers tailored, risk-driven solutions that empower organisations to navigate the complex landscape of cybersecurity and compliance with confidence.'),
+    bp('SecureITLab is certified to ISO 27001:2022, ISO 27701:2019, and ISO 22301:2019.'),
+    subh('Core Capabilities'),
+    ...['Consulting – Cybersecurity and Data Privacy','Assurance – Penetration Testing, Vulnerability Assessment and Red Teaming','Audit and Compliance – IT Audit, Cloud Audit and ISO Compliance','Services Augmentation – vCISO, vCDO and Expert Resourcing','Managed Services – SOC, NOC, Vulnerability Management and Take-Down'].map(bullet),
+
+    // ── S3 Service Description ──
+    pb(), h1('3.  Service Description'), rule(),
+    new Paragraph({spacing:{before:0,after:80},children:[new TextRun({text:svc.name,font:'Arial',size:24,bold:true,color:BLUE})]}),
+    bp(svc.desc),
+    subh('Key Deliverables'),
+    ...(svc.deliverables.length?svc.deliverables:[]).map(bullet),
+    subh('Methodology'),
+    bp('SecureITLab employs industry-recognised methodologies, standards, and frameworks throughout this engagement. All activities are conducted in alignment with the agreed scope and subject to the client\'s change-control and information security policies.'),
+
+    // ── S4 Scope ──
+    pb(), h1('4.  Scope of Work'), rule(),
+    subh('In Scope'),
+    ...lists.inscope.filter(x=>x.trim()).map(bullet),
+    ...(lists.inscope.filter(x=>x.trim()).length===0?[bp('To be defined.')]:[]),
+    subh('Out of Scope'),
+    ...lists.outscope.filter(x=>x.trim()).map(bullet),
+    ...(lists.outscope.filter(x=>x.trim()).length===0?[bp('To be defined.')]:[]),
+    subh('Assumptions and Dependencies'),
+    ...lists.assumptions.filter(x=>x.trim()).map(bullet),
+    ...(lists.assumptions.filter(x=>x.trim()).length===0?[bp('To be confirmed.')]:[]),
+    subh('Client Responsibilities'),
+    ...lists.responsibilities.filter(x=>x.trim()).map(bullet),
+    ...(lists.responsibilities.filter(x=>x.trim()).length===0?[bp('To be confirmed.')]:[]),
+
+    // ── S5 Timeline ──
+    pb(), h1('5.  Project Timeline'), rule(),
+    bp('The indicative timeline below is subject to confirmation upon contract award.'),
+    new Paragraph({spacing:{before:80,after:160},children:[
+      new TextRun({text:'Proposed Start: ',font:'Arial',size:20,bold:true,color:NAVY}),
+      new TextRun({text:startDate||'TBD',font:'Arial',size:20,color:GREY}),
+      new TextRun({text:'     Proposed End: ',font:'Arial',size:20,bold:true,color:NAVY}),
+      new TextRun({text:endDate||'TBD',font:'Arial',size:20,color:GREY}),
+    ]}),
+    new Table({
+      width:{size:CW,type:WidthType.DXA},
+      columnWidths:H,
+      rows:[
+        new TableRow({children:[hCell('Phase',H[0]),hCell('Activities',H[1]),hCell('Duration',H[2]),hCell('Deliverables',H[3])]}),
+        ...tlRows.filter(r=>r.phase||r.activities||r.duration||r.deliverables).map((r,i)=>
+          new TableRow({children:[
+            dCell(r.phase,H[0],i%2===1?LBLUE:WHITE),
+            dCell(r.activities,H[1],i%2===1?LBLUE:WHITE),
+            dCell(r.duration,H[2],i%2===1?LBLUE:WHITE),
+            dCell(r.deliverables,H[3],i%2===1?LBLUE:WHITE),
+          ]})
+        ),
+        ...(tlRows.filter(r=>r.phase||r.activities).length===0?[
+          new TableRow({children:[dCell('Phase 1',H[0]),dCell('',H[1]),dCell('',H[2]),dCell('',H[3])]})
+        ]:[]),
+      ],
+    }),
+
+    // ── S6 Investment ──
+    pb(), h1('6.  Investment Summary'), rule(),
+    bp('All fees are exclusive of applicable taxes. Payment terms are as per the Master Service Agreement or as agreed in writing.'),
+    new Paragraph({spacing:{before:80,after:120},children:[new TextRun({text:'Currency: '+currency,font:'Arial',size:20,bold:true,color:NAVY})]}),
+    new Table({
+      width:{size:CW,type:WidthType.DXA},
+      columnWidths:C,
+      rows:[
+        new TableRow({children:[hCell('Line Item',C[0]),hCell('Description',C[1]),hCell('Unit Price',C[2]),hCell('Qty',C[3]),hCell('Total ('+currency+')',C[4])]}),
+        ...costRows.filter(r=>r.item||r.desc||r.unitPrice).map((r,i)=>
+          new TableRow({children:[
+            dCell(r.item,C[0],i%2===1?LBLUE:WHITE),
+            dCell(r.desc,C[1],i%2===1?LBLUE:WHITE),
+            dCell(fmtNum(r.unitPrice),C[2],i%2===1?LBLUE:WHITE),
+            dCell(String(r.qty),C[3],i%2===1?LBLUE:WHITE),
+            dCell(fmtNum(r.total),C[4],i%2===1?LBLUE:WHITE),
+          ]})
+        ),
+        new TableRow({children:[
+          new TableCell({columnSpan:4,width:{size:C[0]+C[1]+C[2]+C[3],type:WidthType.DXA},borders:allB(BLUE,6),shading:{fill:LBLUE,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'Subtotal',font:'Arial',size:20,bold:true,color:NAVY})]})]}),
+          dCell(currency+' '+fmtNum(subTotal),C[4],LBLUE),
+        ]}),
+        new TableRow({children:[
+          new TableCell({columnSpan:4,width:{size:C[0]+C[1]+C[2]+C[3],type:WidthType.DXA},borders:allB(BLUE,6),shading:{fill:LBLUE,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'Tax ('+taxRate+'%)',font:'Arial',size:20,bold:true,color:NAVY})]})]}),
+          dCell(currency+' '+fmtNum(taxAmt),C[4],LBLUE),
+        ]}),
+        new TableRow({children:[
+          new TableCell({columnSpan:4,width:{size:C[0]+C[1]+C[2]+C[3],type:WidthType.DXA},borders:allB(NAVY,8),shading:{fill:NAVY,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new TextRun({text:'TOTAL INVESTMENT',font:'Arial',size:22,bold:true,color:WHITE})]})]}),
+          new TableCell({width:{size:C[4],type:WidthType.DXA},borders:allB(NAVY,8),shading:{fill:NAVY,type:ShadingType.CLEAR},margins:{top:80,bottom:80,left:120,right:120},children:[new Paragraph({children:[new TextRun({text:currency+' '+fmtNum(grandTotal),font:'Arial',size:22,bold:true,color:WHITE})]})]}),
+        ]}),
+      ],
+    }),
+    subh('Payment Schedule'),
+    ...lists.payments.filter(x=>x.trim()).map(bullet),
+    new Paragraph({spacing:{before:80,after:40},children:[new TextRun({text:'Validity: This proposal is valid for 30 days from the date of issue.',font:'Arial',size:20,color:GREY})]}),
+
+    // ── S7 T&C ──
+    pb(), h1('7.  Terms and Conditions'), rule(),
+    bp('This proposal is subject to SecureITLab\'s standard Master Service Agreement (MSA). Key terms are summarised below; the MSA governs in the event of any conflict.'),
+    ...[
+      {t:'Confidentiality',b:'Both parties agree to maintain strict confidentiality of all information exchanged. SecureITLab will not disclose client data to third parties without prior written consent.'},
+      {t:'Intellectual Property',b:'All deliverables become the property of the client upon receipt of full payment. SecureITLab retains rights to its pre-existing methodologies, tools, and frameworks.'},
+      {t:'Limitation of Liability',b:"SecureITLab's aggregate liability shall not exceed the total fees paid under this engagement. SecureITLab is not liable for indirect, consequential, or incidental damages."},
+      {t:'Governing Law',b:'This proposal and any resulting engagement shall be governed by the laws of the Kingdom of Bahrain, unless otherwise agreed in writing.'},
+      {t:'Amendments',b:'Any change in scope, timeline, or cost requires a written Change Request signed by both parties prior to implementation.'},
+    ].flatMap(({t,b})=>[label(t),value(b)]),
+
+    // ── S8 Signatures ──
+    pb(), h1('8.  Acceptance and Signatures'), rule(),
+    bp('By signing below, both parties confirm their agreement to the terms set out in this proposal and authorise SecureITLab to commence the engagement as described.'),
+    new Paragraph({spacing:{before:240},children:[]}),
+    new Table({
+      width:{size:CW,type:WidthType.DXA},
+      columnWidths:[Math.round(CW/2)-200,400,Math.round(CW/2)-200],
+      rows:[
+        new TableRow({children:[
+          new TableCell({width:{size:Math.round(CW/2)-200,type:WidthType.DXA},borders:{bottom:bdr(NAVY,6)},children:[new Paragraph({spacing:{before:800},children:[new TextRun({text:'Authorised Signatory — '+orgName,font:'Arial',size:18,bold:true,color:NAVY})]})]}),
+          new TableCell({width:{size:400,type:WidthType.DXA},borders:{},children:[]}),
+          new TableCell({width:{size:Math.round(CW/2)-200,type:WidthType.DXA},borders:{bottom:bdr(NAVY,6)},children:[new Paragraph({spacing:{before:800},children:[new TextRun({text:'Authorised Signatory — SecureITLab',font:'Arial',size:18,bold:true,color:NAVY})]})]}),
+        ]}),
+        ...['Name','Title','Date'].map(lbl=>new TableRow({children:[
+          dCell('',Math.round(CW/2)-200),
+          dCell('',400),
+          dCell('',Math.round(CW/2)-200),
+        ]})),
+      ],
+    }),
+    new Paragraph({spacing:{before:480},children:[]}),
+    new Paragraph({spacing:{before:80,after:80},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:BLUE,space:1}},children:[]}),
+    new Paragraph({spacing:{before:120},alignment:AlignmentType.CENTER,children:[new TextRun({text:'SecureITLab  |  info@secureitlab.com  |  www.secureitlab.com',font:'Arial',size:18,color:GREY})]}),
+    new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:'Bahrain  |  Philippines  |  India',font:'Arial',size:18,color:GREY})]}),
+  ];
+
+  const doc = new Document({
+    numbering:{config:[{reference:'bullets',levels:[{level:0,format:LevelFormat.BULLET,text:'•',alignment:AlignmentType.LEFT,style:{paragraph:{indent:{left:540,hanging:360}}}}]}]},
+    styles:{
+      default:{document:{run:{font:'Arial',size:20}}},
+      paragraphStyles:[
+        {id:'Heading1',name:'Heading 1',basedOn:'Normal',next:'Normal',quickFormat:true,run:{size:28,bold:true,font:'Arial',color:NAVY},paragraph:{spacing:{before:280,after:120},outlineLevel:0}},
+      ],
+    },
+    sections:[{
+      properties:{page:{size:{width:PAGE_W,height:PAGE_H},margin:{top:MARGIN,right:MARGIN,bottom:MARGIN,left:MARGIN}}},
+      headers:{default:new Header({children:[new Paragraph({border:{bottom:{style:BorderStyle.SINGLE,size:6,color:BLUE,space:1}},children:[new TextRun({text:'SecureITLab — Confidential     |     '+svc.name,font:'Arial',size:16,color:GREY})]})]}),},
+      footers:{default:new Footer({children:[new Paragraph({border:{top:{style:BorderStyle.SINGLE,size:4,color:'CCCCCC',space:1}},children:[new TextRun({text:'www.secureitlab.com     |     '+orgName+'     |     '+propDate,font:'Arial',size:16,color:GREY})]})]}),},
+      children,
+    }],
+  });
+
+  return await Packer.toBlob(doc);
+}
+</script>
+</body>
+</html>
